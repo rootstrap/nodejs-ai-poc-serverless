@@ -17,7 +17,7 @@ exports.summarizeFile = async (event) => {
       busboy.on('file', async (fieldname, file, { filename }, encoding, mimetype) => {
         console.log(`Processing file: ${JSON.stringify(filename)}`);
 
-        const filePath = path.join(__dirname, '/tmp', filename); // En Lambda, guarda temporalmente en /tmp
+        const filePath = path.join(__dirname, '/tmp', filename); //Lambda only saves temporarely in /tmp
         const writeStream = fs.createWriteStream(filePath);
 
         file.pipe(writeStream);
@@ -65,7 +65,7 @@ exports.summarizeFile = async (event) => {
         });
       });
 
-      busboy.write(Buffer.from(event.body, 'base64')); // Escribir el cuerpo de la solicitud a busboy
+      busboy.write(Buffer.from(event.body, 'base64'));
       busboy.end();
     });
   } else {
