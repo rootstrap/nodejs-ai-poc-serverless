@@ -1,0 +1,35 @@
+service: ai-poc-serverless
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+
+functions:
+  summarize:
+    handler: handler.summarizeFile
+    events:
+      - http:
+          path: /
+          method: post
+          cors: false
+          documentation:
+            summary: "Send files and process them with AI"
+            description: "Send files (mp3, pdf, mp4) and create a summary with AI"
+            requestBody:
+              description: "File to upload"
+              content:
+                multipart/form-data:
+                  schema:
+                    type: object
+                    properties:
+                      file:
+                        type: string
+                        format: binary
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: "File uploaded successfully"
+
+plugins:
+  - serverless-dotenv-plugin
+  - serverless-offline
