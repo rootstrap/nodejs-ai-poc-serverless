@@ -1,8 +1,23 @@
 const { Buffer } = require('buffer');
-const fs = require('fs');
-const path = require('path');
 const { fromBuffer } = require('file-type')
 const bb = require('busboy');
+const { callVertexAI } = require('./functions/callVertexAI');
+const prompts = require('./constants/prompts')
+
+const availableFeatures = {
+  mp3: {
+    call: callVertexAI,
+    prompts: prompts.mp3
+  },
+  pdf: {
+    call: () => console.log("pdf call"), //TODO: add PDF AI call
+    prompts: prompts.pdf
+  },
+  mp4: {
+    call: callVertexAI,
+    prompts: prompts.mp4
+  }
+}
 
 exports.summarizeFile = async (event) => {
   if (event.isBase64Encoded && event.headers['Content-Type'].includes('multipart/form-data')) {
@@ -10,51 +25,41 @@ exports.summarizeFile = async (event) => {
       headers: { 'content-type': event.headers['Content-Type'] }
     });
 
-    const files = [];
-    const fileWrites = [];
-
     return new Promise((resolve, reject) => {
-      busboy.on('file', async (fieldname, file, { filename }, encoding, mimetype) => {
-        console.log(`Processing file: ${JSON.stringify(filename)}`);
+      busboy.on('file', async (_fieldname, file, _fileinfo, _encoding, _mimetype) => {
+        let fileBuffer
 
-        const filePath = path.join(__dirname, '/tmp', filename); //Lambda only saves temporarely in /tmp
-        const writeStream = fs.createWriteStream(filePath);
-
-        file.pipe(writeStream);
-
-        fileWrites.push(new Promise((fileResolve, fileReject) => {
-          writeStream.on('finish', async () => {
-            console.log(`Finished writing ${filename}`);
-
-            const fileBuffer = fs.readFileSync(filePath);
-            const fileType = await fromBuffer(fileBuffer);
-
-            if (!fileType) {
-              return fileReject('Could not determine file type.');
-            }
-
-            console.log('File type:', fileType);
-
-            files.push({ filename, fileType, filePath });
-            fileResolve();
-          });
-
-          writeStream.on('error', fileReject);
-        }));
-      });
-
-      busboy.on('finish', async () => {
-        console.log('File processing finished');
-        await Promise.all(fileWrites);
-
-        files.forEach(file => {
-          //Here make the request to OpenAI/Vertex with the file extension
+        file.on('data', (data) => {
+          fileBuffer = data
         })
 
-        resolve({
-          statusCode: 200,
-          body: JSON.stringify({ message: 'File uploaded and processed successfully', files })
-        });
+        file.on('end', async () => {
+          const fileType = await fromBuffer(fileBuffer);
+          const feature = availableFeatures[fileType.ext]
+
+          if (feature) {
+            const prompt = feature.prompts[event.queryStringParameters?.action] || prompts.default;
+
+            const response = await feature.call(fileBuffer, prompt, fileType.ext)
+
+            resolve({
+              statusCode: 200,
+              body: JSON.stringify({
+                message: 'File uploaded and processed successfully', fileType, response
+              })
+            });
+
+          } else {
+
+            reject({
+              statusCode: 500,
+              body: JSON.stringify({
+                mesage: `File extension ${fileType.ext} is not supported. Please upload a file that has one of the following extensions: ${Object.keys(availableFeatures)}`
+              })
+            })
+
+          }
+        })
       });
 
       busboy.on('error', (error) => {

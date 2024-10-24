@@ -11,6 +11,18 @@ authorName: 'Serverless, Inc.'
 authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
 -->
 
+# Getting started
+
+To get started you first have to install the needed dependencies with
+
+```
+npm install
+```
+
+Then, create a .env file at the root of the project and fill the variables.
+
+After that, add your Vertex AI credentials.json file to the root of the project and/or configure the needed OpenAI variables in the .env file
+
 # Serverless Framework AWS NodeJS Example
 
 This template demonstrates how to deploy a simple NodeJS function running on AWS Lambda using the Serverless Framework. The deployed function does not include any event definitions or any kind of persistence (database). For more advanced configurations check out the [examples repo](https://github.com/serverless/examples/) which include use cases like API endpoints, workers triggered by SQS, persistence with DynamoDB, and scheduled tasks. For details about configuration of specific events, please refer to our [documentation](https://www.serverless.com/framework/docs/providers/aws/events/).
@@ -43,26 +55,27 @@ After successful deployment, you can invoke the deployed function by using the f
 ```
 serverless invoke --function hello
 ```
-
-Which should result in response similar to the following:
-
-```json
-{
-  "statusCode": 200,
-  "body": "{\"message\":\"Go Serverless v4.0! Your function executed successfully!\"}"
-}
-```
-
-### Local development
-
-The easiest way to develop and test your function is to use the Serverless Framework's `dev` command:
+### Local development with serverless-offline plugin
 
 ```
-serverless dev
+serverless offline start
 ```
 
-This will start a local emulator of AWS Lambda and tunnel your requests to and from AWS Lambda, allowing you to interact with your function as if it were running in the cloud.
+This will start a local emulator of AWS Lambda and tunnel
 
-Now you can invoke the function as before, but this time the function will be executed locally. Now you can develop your function locally, invoke it, and see the results immediately without having to re-deploy.
+Now you can hit the exposed endpoint through postman:
 
-When you are done developing, don't forget to run `serverless deploy` to deploy the function to the cloud.
+Try hitting 
+
+```
+http://localhost:3000/dev
+```
+
+You can include **action** query parameter to tell the AI which prompt to use for the given file, if action is not present in the query parameters, the default action will be triggered (analyze)
+
+Heres a cURL you can copy.
+
+```
+curl --location 'http://localhost:3000/dev?action=song' \
+--form 'file=@"path/to/file"'
+```
