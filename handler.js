@@ -1,23 +1,29 @@
 const { Buffer } = require('buffer');
 const { fromBuffer } = require('file-type');
 const bb = require('busboy');
-const { callVertexAI } = require('./functions/callVertexAI');
+const { callVertexAI, callOpenAI } = require('./functions/callAI');
 const prompts = require('./constants/prompts');
 
-const availableFeatures = {
+const availableFileExtensionFeatures = {
   mp3: {
-    call: callVertexAI,
+    call: (fileBuffer, prompt) => callVertexAI(fileBuffer, prompt, 'mp3'),
     prompts: prompts.mp3,
   },
   pdf: {
-    call: () => console.log('pdf call'), //TODO: add PDF AI call
-    prompts: prompts.pdf,
+    call: callOpenAI,
+    prompts: {},
   },
   mp4: {
-    call: callVertexAI,
+    call: (fileBuffer, prompt) => callVertexAI(fileBuffer, prompt, 'mp4'),
     prompts: prompts.mp4,
   },
 };
+
+function getPrompt(fileExtension, action) {
+  const fileExtensionFeature = availableFileExtensionFeatures[fileExtension];
+  const prompt = fileExtensionFeature.prompts[action] || prompts.default;
+  return prompt;
+}
 
 exports.summarizeFile = async (event) => {
   if (event.isBase64Encoded && event.headers['Content-Type'].includes('multipart/form-data')) {
@@ -34,13 +40,26 @@ exports.summarizeFile = async (event) => {
         });
 
         file.on('end', async () => {
+          console.log(`Starting to process file`);
+
           const fileType = await fromBuffer(fileBuffer);
-          const feature = availableFeatures[fileType.ext];
+          const fileExtension = fileType?.ext;
 
-          if (feature) {
-            const prompt = feature.prompts[event.queryStringParameters?.action] || prompts.default;
+          console.log(`File extension: ${fileExtension}. Looking if we support that extension...`);
 
-            const response = await feature.call(fileBuffer, prompt, fileType.ext);
+          const fileExtensionFeature = availableFileExtensionFeatures[fileExtension];
+
+          console.log(`File extension: ${fileExtension}. Supported: ${fileExtensionFeature ? 'Yes' : 'No'}`);
+
+          if (fileExtensionFeature) {
+            console.log(`Looking for a prompt for the file extension ${fileExtension} and action ${event.queryStringParameters?.action}`);
+            const prompt = getPrompt(fileExtension, event.queryStringParameters?.action);
+
+            console.log(`Prompt found. Is default? ${prompt === prompts.default ? 'Yes' : 'No'}\nPrompt detail: "${prompt}"`);
+
+            const response = fileExtensionFeature.prompt ? await fileExtensionFeature.call(fileBuffer, prompt) : await fileExtensionFeature.call(fileBuffer);
+
+            console.log(`File processed successfully, returning response.`);
 
             resolve({
               statusCode: 200,
@@ -51,10 +70,11 @@ exports.summarizeFile = async (event) => {
               }),
             });
           } else {
+            console.log(`We do not support the file extension ${fileExtension}. Returning error.`);
             reject({
               statusCode: 500,
               body: JSON.stringify({
-                mesage: `File extension ${fileType.ext} is not supported. Please upload a file that has one of the following extensions: ${Object.keys(availableFeatures)}`,
+                mesage: `File extension ${fileExtension} is not supported. Please upload a file that has one of the following extensions: ${Object.keys(availableFileExtensionFeatures)}`,
               }),
             });
           }

@@ -1,6 +1,10 @@
 const { ChatPromptTemplate, MessagesPlaceholder } = require('@langchain/core/prompts');
 const { ChatVertexAI } = require('@langchain/google-vertexai');
 const { HumanMessage } = require('@langchain/core/messages');
+const { ChatOpenAI } = require('@langchain/openai');
+const { loadSummarizationChain } = require('langchain/chains');
+const { RecursiveCharacterTextSplitter } = require('langchain/text_splitter');
+const pdfParse = require('pdf-parse');
 
 function mapFileExtensionToPromptData(extension) {
   const fileExtensionToMimeType = {
@@ -11,12 +15,32 @@ function mapFileExtensionToPromptData(extension) {
     },
     mp4: {
       mimeType: 'video/mp4',
-      messagePlaceholderType: 'videp',
+      messagePlaceholderType: 'video',
       type: 'media',
     },
-    //TODO: add PDF config
+    pdf: {
+      mimeType: 'application/pdf',
+      messagePlaceholderType: 'pdf',
+      type: 'file',
+    },
   };
   return fileExtensionToMimeType[extension];
+}
+
+async function callOpenAI(fileBuffer) {
+  const { text } = await pdfParse(fileBuffer);
+
+  const model = new ChatOpenAI({ temperature: 0.9, model: 'gpt-4o', openAIApiKey: process.env.OPENAI_API_KEY });
+
+  const textSplitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000 });
+  const docs = await textSplitter.createDocuments([text]);
+
+  const chain = loadSummarizationChain(model, { type: 'map_reduce' });
+  const summarizedResponse = await chain.invoke({
+    input_documents: docs,
+  });
+
+  return summarizedResponse.text;
 }
 
 async function callVertexAI(fileBuffer, prompt, fileExtension) {
@@ -53,4 +77,5 @@ async function callVertexAI(fileBuffer, prompt, fileExtension) {
 
 module.exports = {
   callVertexAI,
+  callOpenAI,
 };

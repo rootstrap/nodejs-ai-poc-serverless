@@ -4,6 +4,8 @@
   "description": "<!-- title: 'AWS NodeJS Example' description: 'This template demonstrates how to deploy a simple NodeJS function running on AWS Lambda using the Serverless Framework.' layout: Doc framework: v4 platform: AWS language: nodeJS priority: 1 authorLink: 'https://github.com/serverless' authorName: 'Serverless, Inc.' authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4' -->",
   "main": "handler.js",
   "scripts": {
+    "start:dev": "serverless offline start",
+    "deploy": "serverless deploy",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write \"constants/**/*.js\" \"functions/**/*.js\" \"handler.js\""
   },
@@ -13,12 +15,16 @@
   "dependencies": {
     "@langchain/core": "^0.3.13",
     "@langchain/google-vertexai": "^0.1.0",
+    "@langchain/openai": "^0.3.14",
     "buffer": "^6.0.3",
     "busboy": "^1.6.0",
-    "file-type": "^16.5.4"
+    "file-type": "^16.5.4",
+    "langchain": "^0.3.6",
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
     "prettier": "^3.4.1",
+    "serverless-aws-documentation": "^1.1.0",
     "serverless-dotenv-plugin": "^6.0.0",
     "serverless-offline": "^13.8.0"
   }

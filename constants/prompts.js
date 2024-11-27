@@ -8,9 +8,6 @@ const VIDEO_TIMELINE_PROMPT =
 const VIDEO_SUMMARIZE_PROMPT =
   'Analyze this video file and generate a comprehensive summary that captures the key points and essential content. The summary should take into account both the visual elements and the audio narrative, including important dialogues, changes in tone, background music, and any other significant auditory cues. Additionally, identify and highlight the main topics, themes, and scenes presented in the video, ensuring that the summary reflects the overall message and important details effectively.';
 
-const PDF_SUMMARIZE_PROMPT =
-  'Analyze this PDF file and generate a detailed summary that captures the key points, arguments, and conclusions. The summary should provide an overview of the main topics, themes, and ideas presented in the document, including any supporting evidence, data, or references. Identify and highlight the most important sections, key arguments, and relevant conclusions, ensuring that the summary is concise yet informative.';
-
 const DEFAULT_ANALYZE_PROMPT =
   "Please analyze the provided file and generate a detailed summary of its content. The summary should highlight the most important points, key ideas, and provide a clear description of what the file is about. If it's an audio or video file, include the topics discussed, the tone, and the main conclusions. If it's a document, describe its purpose, the main arguments, and any relevant conclusions. Make sure the summary is concise yet informative.";
 
@@ -18,9 +15,6 @@ module.exports = {
   mp3: {
     song: AUDIO_DESCRIBE_SONG_PROMPT,
     discussion: AUDIO_DESCRIBRE_DISCUSSION_PROMPT,
-  },
-  pdf: {
-    summarize: PDF_SUMMARIZE_PROMPT,
   },
   mp4: {
     summarize: VIDEO_SUMMARIZE_PROMPT,

@@ -6,6 +6,26 @@ provider:
   timeout: 300 #This should be reduced.
   environment:
     GOOGLE_APPLICATION_CREDENTIALS: ${env:GOOGLE_APPLICATION_CREDENTIALS}
+    OPENAI_API_KEY: ${env:OPENAI_API_KEY}
+
+custom:
+  documentation:
+    summary: 'Send files and process them with AI'
+    description: 'Send files (mp3, pdf, mp4) and create a summary using AI'
+    requestBody:
+      description: 'File to upload'
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              file:
+                type: string
+                format: binary
+    methodResponses:
+      - statusCode: 200
+        responseBody:
+          description: 'File uploaded successfully'
 
 functions:
   summarize:
@@ -15,24 +35,8 @@ functions:
           path: /
           method: post
           cors: false
-          documentation:
-            summary: "Send files and process them with AI"
-            description: "Send files (mp3, pdf, mp4) and create a summary with AI"
-            requestBody:
-              description: "File to upload"
-              content:
-                multipart/form-data:
-                  schema:
-                    type: object
-                    properties:
-                      file:
-                        type: string
-                        format: binary
-            methodResponses:
-              - statusCode: 200
-                responseBody:
-                  description: "File uploaded successfully"
 
 plugins:
   - serverless-dotenv-plugin
   - serverless-offline
+  - serverless-aws-documentation
