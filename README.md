@@ -11,71 +11,146 @@ authorName: 'Serverless, Inc.'
 authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
 -->
 
-# Getting started
+# AI File Processing Serverless Application
 
-To get started you first have to install the needed dependencies with
+This project is a serverless application built with AWS Lambda and Node.js that processes various file types using AI services (Google Vertex AI and OpenAI). It provides capabilities to analyze and summarize content from different file formats including MP3, MP4, and PDF files.
 
+## Features
+
+- **Multi-format Support**: Process different file types including:
+
+  - MP3 audio files
+  - MP4 video files
+  - PDF documents
+
+- **AI Integration**:
+
+  - Google Vertex AI integration for audio and video processing
+  - OpenAI integration for PDF processing
+  - Customizable prompts for different file types
+
+- **Serverless Architecture**:
+  - Built on AWS Lambda
+  - Easy deployment using Serverless Framework
+  - Local development support with serverless-offline
+
+## Prerequisites
+
+- Node.js (version specified in `.nvmrc`)
+- AWS Account and configured credentials
+- Google Vertex AI credentials
+- OpenAI API key (if using PDF processing)
+- Serverless Framework CLI
+
+## Installation
+
+1. Clone the repository
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Configure environment variables:
+
+   - Copy `.env.example` to `.env`
+   - Fill in the required variables:
+     ```
+     OPENAI_API_KEY=your_openai_api_key
+     VERTEX_PROJECT_ID=your_vertex_project_id
+     ```
+
+4. Add your Google Vertex AI credentials:
+   - Place your `credentials.json` file in the project root
+   - Ensure proper permissions are set
+
+## Development
+
+To run the project locally:
+
+```bash
+npm run start:dev
 ```
-npm install
+
+This will start the serverless-offline server, allowing you to test your functions locally.
+
+## Deployment
+
+Deploy to AWS:
+
+```bash
+npm run deploy
 ```
 
-Then, create a .env file at the root of the project and fill the variables.
+## API Endpoints
 
-After that, add your Vertex AI credentials.json file to the root of the project and/or configure the needed OpenAI variables in the .env file
+The service exposes an endpoint for file processing:
 
-# Serverless Framework AWS NodeJS Example
+### POST /summarize
 
-This template demonstrates how to deploy a simple NodeJS function running on AWS Lambda using the Serverless Framework. The deployed function does not include any event definitions or any kind of persistence (database). For more advanced configurations check out the [examples repo](https://github.com/serverless/examples/) which include use cases like API endpoints, workers triggered by SQS, persistence with DynamoDB, and scheduled tasks. For details about configuration of specific events, please refer to our [documentation](https://www.serverless.com/framework/docs/providers/aws/events/).
+Processes files using AI to generate summaries and analysis.
 
-## Usage
+**Request Format:**
 
-### Deployment
+- Method: POST
+- Content-Type: multipart/form-data
+- Body: Include file in form data, you can give any name to it.
 
-In order to deploy the example, you need to run the following command:
+**Query Parameters:**
 
-```
-serverless deploy
-```
+- `action` (optional): Specifies the type of analysis to perform. If not provided, defaults to general analysis.
 
-After running deploy, you should see output similar to:
+  Available actions by file type:
 
-```
-Deploying "aws-node" to stage "dev" (us-east-1)
+  - MP3 files:
+    - `song`: Analyzes the instruments used and identifies the song genre
+    - `discussion`: Creates a detailed summary of spoken discussions
+  - MP4 files:
+    - `timeline`: Creates a YouTube-style timeline with key moments
+    - `summarize`: Generates a comprehensive summary of the video content
 
-✔ Service deployed to stack aws-node-dev (90s)
+**Example Requests:**
 
-functions:
-  hello: aws-node-dev-hello (1.5 kB)
-```
+1. Analyze a song (MP3):
 
-### Invocation
-
-After successful deployment, you can invoke the deployed function by using the following command:
-
-```
-serverless invoke --function hello
-```
-### Local development with serverless-offline plugin
-
-```
-serverless offline start
+```bash
+curl --location 'http://localhost:3000/dev/summarize?action=song' \
+--form 'file=@"path/to/song.mp3"'
 ```
 
-This will start a local emulator of AWS Lambda and tunnel
+2. Analyze a discussion (MP3):
 
-Now you can hit the exposed endpoint through postman:
-
-Try hitting 
-
-```
-http://localhost:3000/dev
+```bash
+curl --location 'http://localhost:3000/dev/summarize?action=discussion' \
+--form 'file=@"path/to/discussion.mp3"'
 ```
 
-You can include **action** query parameter to tell the AI which prompt to use for the given file, if action is not present in the query parameters, the default action will be triggered (analyze)
+3. Create video timeline (MP4):
 
-Heres a cURL you can copy.
+```bash
+curl --location 'http://localhost:3000/dev/summarize?action=timeline' \
+--form 'file=@"path/to/video.mp4"'
+```
 
+4. Default analysis (for PDFs):
+
+```bash
+curl --location 'http://localhost:3000/dev/summarize' \
+--form 'file=@"path/to/file.pdf"'
 ```
-curl --location 'http://localhost:3000/dev?action=song' \
---form 'file=@"path/to/file"'
-```
+
+**Response:**
+Returns a JSON object containing the AI-generated analysis based on the file type and specified action.
+
+## Project Structure
+
+- `/functions` - Contains AI service integration functions
+- `/constants` - Contains prompt templates and configurations
+- `handler.js` - Main Lambda function handlers
+- `serverless.yml` - Serverless Framework configuration
+
+## Available Scripts
+
+- `npm run start:dev` - Start local development server
+- `npm run deploy` - Deploy to AWS
+- `npm run format` - Format code using Prettier
