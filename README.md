@@ -1,17 +1,4 @@
-<!--
-title: 'AWS NodeJS Example'
-description: 'This template demonstrates how to deploy a simple NodeJS function running on AWS Lambda using the Serverless Framework.'
-layout: Doc
-framework: v4
-platform: AWS
-language: nodeJS
-priority: 1
-authorLink: 'https://github.com/serverless'
-authorName: 'Serverless, Inc.'
-authorAvatar: 'https://avatars1.githubusercontent.com/u/13742415?s=200&v=4'
--->
-
-# AI File Processing Serverless Application
+# [POC] AI File Processing Serverless Application
 
 This project is a serverless application built with AWS Lambda and Node.js that processes various file types using AI services (Google Vertex AI and OpenAI). It provides capabilities to analyze and summarize content from different file formats including MP3, MP4, and PDF files.
 
